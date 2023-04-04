@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">MonitoringApp</string>
+    <string name="back_button_description">back button</string>
+    <string name="restrict_access_button_text">Restrict Access</string>
+    <string name="allow_access_button_text">Allow Access</string>
+    <string name="block_permissions_button_text">block permissions</string>
+    <string name="select_apps_to_monitor">Select apps to monitor:</string>
+    <string name="view_selected_apps">View Selected Apps</string>
+    <string name="block_access">Block Access</string>
+    <string name="folders_accessed_by_the_app">Folders Accessed by the App:</string>
+</resources>
