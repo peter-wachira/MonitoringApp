@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="com.example.monitoringapp.CUSTOM_PERMISSION" />
     <uses-permission android:name="com.trustedapp.example.permission.CUSTOM_PERMISSION" />
-
     <uses-permission android:name="com.example.myapp.CUSTOM_PERMISSION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"
+    <uses-permission
+        android:name="android.permission.WRITE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
     <uses-permission android:name="android.permission.INSTALL_SHORTCUT" />
-
 
     <application
         android:allowBackup="true"
@@ -26,6 +24,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MonitoringApp"
         tools:targetApi="31">
+        <activity
+            android:name=".LogActivity"
+            android:theme="@style/NoActionBar"
+            android:exported="false">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="" />
+        </activity>
+
         <activity
             android:name=".AppListActivity"
             android:exported="true">
@@ -39,8 +46,10 @@
                 android:name="android.app.lib_name"
                 android:value="" />
         </activity>
-        <activity android:name=".LogActivity" android:theme="@style/NoActionBar"/>
-        <activity android:name=".MainActivity"/>
+
+
+        <service android:name=".service.FileMonitorService"/>
+
 
         <meta-data
             android:name="preloaded_fonts"

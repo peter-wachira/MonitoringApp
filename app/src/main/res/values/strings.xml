@@ -8,4 +8,7 @@
     <string name="view_selected_apps">View Selected Apps</string>
     <string name="block_access">Block Access</string>
     <string name="folders_accessed_by_the_app">Folders Accessed by the App:</string>
+    <string name="list_of_installed_apps">List of installed Apps:</string>
+    <string name="permissions_accessed_by_the_app">Permissions Accessed by App:</string>
+    <string name="save_app_log_file">Save Log File</string>
 </resources>
