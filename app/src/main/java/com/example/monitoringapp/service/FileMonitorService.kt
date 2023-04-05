@@ -1,17 +1,24 @@
 package com.example.monitoringapp.service
 
+import android.Manifest
+import android.app.* // ktlint-disable no-wildcard-imports
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.* // ktlint-disable no-wildcard-imports
 import android.os.Binder
+import android.os.Build
 import android.os.FileObserver
+import android.os.FileObserver.* // ktlint-disable no-wildcard-imports
 import android.os.IBinder
+import android.provider.Settings
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import com.example.monitoringapp.LogActivity
 import com.example.monitoringapp.R
 
@@ -25,7 +32,7 @@ import com.example.monitoringapp.R
 class FileMonitorService : Service() {
 
     private lateinit var fileObserver: FileObserver
-    private lateinit var notificationManager: NotificationManager
+    private lateinit var notificationManager: NotificationManagerCompat
 
     companion object {
         private const val CHANNEL_ID = "file_monitor_channel"
@@ -39,10 +46,11 @@ class FileMonitorService : Service() {
         return LocalBinder()
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate() {
         super.onCreate()
 
-        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager = NotificationManagerCompat.from(this)
         createNotificationChannel()
 
         // Get a list of all installed apps
@@ -70,6 +78,25 @@ class FileMonitorService : Service() {
                 fileObserver.startWatching()
             }
         }
+
+        val permission = Manifest.permission.FOREGROUND_SERVICE
+        val res = checkSelfPermission(permission)
+        if (res != PackageManager.PERMISSION_GRANTED) {
+            val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+            intent.data = android.net.Uri.parse("package:$packageName")
+            startActivity(intent)
+            return
+        }
+
+        startForeground(
+            NOTIFICATION_ID,
+            NotificationCompat.Builder(this, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_baseline_notifications_active_24)
+                .setContentTitle("File Monitor is running")
+                .setContentText("Monitoring file access")
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .build(),
+        )
     }
 
     override fun onDestroy() {
@@ -80,10 +107,11 @@ class FileMonitorService : Service() {
     private fun createNotificationChannel() {
         val name = "File Monitor"
         val descriptionText = "Monitors file access"
-        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val importance = NotificationManager.IMPORTANCE_LOW
         val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
             description = descriptionText
         }
+
         notificationManager.createNotificationChannel(channel)
     }
 
