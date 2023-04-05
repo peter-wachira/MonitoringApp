@@ -26,9 +26,18 @@ class AppListActivity : AppCompatActivity() {
 
         // Filter the list to only include apps with the required permissions
         for (app in installedApps) {
-            if (packageManager.checkPermission(android.Manifest.permission.ACCESS_FINE_LOCATION, app.packageName) == PackageManager.PERMISSION_GRANTED ||
-                packageManager.checkPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE, app.packageName) == PackageManager.PERMISSION_GRANTED ||
-                packageManager.checkPermission(android.Manifest.permission.READ_CONTACTS, app.packageName) == PackageManager.PERMISSION_GRANTED
+            if (packageManager.checkPermission(
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    app.packageName,
+                ) == PackageManager.PERMISSION_GRANTED ||
+                packageManager.checkPermission(
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                    app.packageName,
+                ) == PackageManager.PERMISSION_GRANTED ||
+                packageManager.checkPermission(
+                    android.Manifest.permission.READ_CONTACTS,
+                    app.packageName,
+                ) == PackageManager.PERMISSION_GRANTED
             ) {
                 appNames.add(app.loadLabel(packageManager).toString())
             }

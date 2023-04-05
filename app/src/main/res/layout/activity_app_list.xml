@@ -18,6 +18,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/folders_accessed_title"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="1dp"
+        android:layout_marginBottom="-2dp"
         android:padding="8dp" />
 
 </RelativeLayout>

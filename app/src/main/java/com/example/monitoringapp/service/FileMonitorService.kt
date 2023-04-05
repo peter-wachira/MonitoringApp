@@ -1,9 +1,15 @@
 package com.example.monitoringapp.service
 
-import android.app.* // ktlint-disable no-wildcard-imports
-import android.content.* // ktlint-disable no-wildcard-imports
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.Service
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.*
+import android.os.Binder
+import android.os.FileObserver
+import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.example.monitoringapp.LogActivity
@@ -55,7 +61,6 @@ class FileMonitorService : Service() {
                             val folderPath = "$packageName/$path"
                             Log.d("FileMonitor", "$folderPath has been accessed")
                             sendNotification("$folderPath has been accessed")
-
                             // Add the accessed folder to the list
                             accessedFolders.add(folderPath)
                         }

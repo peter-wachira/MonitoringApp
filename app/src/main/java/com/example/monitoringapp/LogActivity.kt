@@ -27,10 +27,12 @@ import com.example.monitoringapp.service.FileMonitorService
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
+import java.util.*
 
 class LogActivity : AppCompatActivity() {
-    private val TAG = LogActivity::class.java.simpleName
 
+    // Declare properties
+    private val TAG = LogActivity::class.java.simpleName
     private lateinit var packageInfo: PackageInfo
     private lateinit var permissions: Array<String>
     private var fileObserver: FileObserver? = null
@@ -39,17 +41,21 @@ class LogActivity : AppCompatActivity() {
     private lateinit var logListAdapter: ArrayAdapter<String>
     private lateinit var fileMonitorService: FileMonitorService
 
+    // Create a service connection object to bind to the FileMonitorService
     private val serviceConnection = object : ServiceConnection {
-
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             val binder = service as FileMonitorService.LocalBinder
             fileMonitorService = binder.getService()
+            // Get the accessed folders from the service and add them to the accessedFolders set
             accessedFolders.addAll(fileMonitorService.getAccessedFolders())
+            Log.d(TAG, "accessedFolders: $accessedFolders")
+            // Create an array adapter for the accessed folders list
             logListAdapter = object : ArrayAdapter<String>(
                 this@LogActivity,
                 android.R.layout.simple_list_item_1,
                 ArrayList(accessedFolders),
             ) {
+                // Override the getView method to display the folder path
                 override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                     val view = convertView ?: LayoutInflater.from(context)
                         .inflate(android.R.layout.simple_list_item_1, parent, false)
@@ -66,6 +72,7 @@ class LogActivity : AppCompatActivity() {
                     return accessedFolders.elementAt(position)
                 }
             }
+            // Set the adapter for the accessed folders list view
             val logList = findViewById<ListView>(R.id.folders_accessed_list)
             logList.adapter = logListAdapter
         }
@@ -80,14 +87,17 @@ class LogActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_log)
 
+        // Create an intent to start the FileMonitorService
         val serviceIntent = Intent(this, FileMonitorService::class.java)
+        // Bind to the service and store the result in the bound variable
         val bound = bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+        // If binding failed, log an error message and show a toast message
         if (!bound) {
             Log.e(TAG, "Failed to bind to FileMonitorService")
             Toast.makeText(this, "Failed to bind to FileMonitorService", Toast.LENGTH_SHORT).show()
         }
 
-        // Set up back button
+        // Set up the back button to clear the app name and call onBackPressed()
         val backButton = findViewById<ImageButton>(R.id.back_button)
         val title = findViewById<TextView>(R.id.app_name)
         backButton.setOnClickListener {
@@ -95,10 +105,9 @@ class LogActivity : AppCompatActivity() {
             onBackPressed()
         }
 
-        // Get the package name from the intent extra
+        // Get the package name from the intent extra and set the app name
         val packageName = intent.getStringExtra("packageName")
         title.text = packageName?.let { getAppName(it, applicationContext) }
-
         // Get the permissions for the selected app
         packageInfo = packageName?.let {
             packageManager.getPackageInfo(it, PackageManager.GET_PERMISSIONS)
@@ -116,24 +125,36 @@ class LogActivity : AppCompatActivity() {
         }
 
         // Monitor the app's file access in the background
+        // Monitor the app's file access in the background
         fileObserver = packageInfo.applicationInfo.dataDir?.let {
             object : FileObserver(it, ALL_EVENTS) {
                 override fun onEvent(event: Int, path: String?) {
-                    if (event and (CREATE or DELETE or MODIFY) != 0) {
+                    if (event and (CREATE or DELETE or MODIFY or OPEN or CLOSE_WRITE) != 0) {
                         Log.e(TAG, "File access: $path")
                         logMessage("File access: $path", logContainer)
                         val folderPath = getFolderPathFromMessage("File access: $path")
                         if (folderPath != null) {
                             accessedFolders.add(folderPath)
                             runOnUiThread {
-                                logListAdapter.notifyDataSetChanged()
+                                logListAdapter.clear()
+                                logListAdapter.addAll(accessedFolders)
                             }
                         }
                     }
                 }
             }
         }
+
         fileObserver?.startWatching()
+
+        logListAdapter = ArrayAdapter(
+            this,
+            android.R.layout.simple_list_item_1,
+            ArrayList(accessedFolders),
+        )
+
+        val logList = findViewById<ListView>(R.id.folders_accessed_list)
+        logList.adapter = logListAdapter
 
         // Set up the log button to save log messages
         val logButton = findViewById<Button>(R.id.save_app_logs)
@@ -248,5 +269,10 @@ class LogActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         unbindService(serviceConnection)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        fileObserver?.stopWatching()
     }
 }
