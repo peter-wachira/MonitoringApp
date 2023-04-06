@@ -14,10 +14,10 @@ import android.os.IBinder
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.TextPaint
-import android.text.TextUtils
 import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
 import android.util.Log
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -35,11 +35,11 @@ class LogActivity : AppCompatActivity() {
     private val TAG = LogActivity::class.java.simpleName
     private lateinit var packageInfo: PackageInfo
     private lateinit var permissions: Array<String>
-    private var fileObserver: FileObserver? = null
     private var accessedFolders = mutableSetOf<String>()
     private val logMessages = mutableListOf<String>()
     private lateinit var logListAdapter: ArrayAdapter<String>
     private lateinit var fileMonitorService: FileMonitorService
+    private var fileObservers: List<FileObserver> = listOf()
 
     // Create a service connection object to bind to the FileMonitorService
     private val serviceConnection = object : ServiceConnection {
@@ -122,30 +122,57 @@ class LogActivity : AppCompatActivity() {
                 val permissionStatus = packageManager.checkPermission(permission, packageName)
                 logMessage("$permission: \n ${getPermissionStatus(permissionStatus)}", logContainer)
             }
+        } else {
+            // If there are no permissions, show a message in an empty view
+            val emptyView = TextView(this)
+            val textColor = Color.BLACK
+            emptyView.setTextColor(textColor)
+            emptyView.text = getString(R.string.no_permissions_found)
+            emptyView.setPadding(16, 16, 16, 16)
+            emptyView.gravity = Gravity.CENTER
+            logContainer.addView(emptyView)
         }
 
         // Monitor the app's file access in the background
-        // Monitor the app's file access in the background
-        fileObserver = packageInfo.applicationInfo.dataDir?.let {
-            object : FileObserver(it, ALL_EVENTS) {
-                override fun onEvent(event: Int, path: String?) {
-                    if (event and (CREATE or DELETE or MODIFY or OPEN or CLOSE_WRITE) != 0) {
-                        Log.e(TAG, "File access: $path")
-                        logMessage("File access: $path", logContainer)
-                        val folderPath = getFolderPathFromMessage("File access: $path")
-                        if (folderPath != null) {
-                            accessedFolders.add(folderPath)
+        val pm = packageManager
+        val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
+
+        // Create a separate FileObserver for each installed app
+        fileObservers = packages.mapNotNull { packageInfo ->
+            packageInfo.dataDir?.let { dataDir ->
+                object : FileObserver(dataDir, ALL_EVENTS) {
+                    override fun onEvent(event: Int, path: String?) {
+                        if (event and (CREATE or DELETE or MODIFY or OPEN or CLOSE_WRITE) != 0) {
+                            val fullPath = "$dataDir/$path"
+                            Log.e(TAG, "File access: $fullPath")
                             runOnUiThread {
-                                logListAdapter.clear()
-                                logListAdapter.addAll(accessedFolders)
+                                logMessage("File access: $fullPath", logContainer)
+                            }
+                            val folderPath = getFolderPathFromMessage("File access: $fullPath")
+                            if (folderPath != null) {
+                                accessedFolders.add(fullPath)
+                                runOnUiThread {
+                                    logListAdapter.clear()
+                                    logListAdapter.addAll(accessedFolders)
+                                }
                             }
                         }
                     }
-                }
+                }.apply { startWatching() }
             }
-        }
+        }.toList()
 
-        fileObserver?.startWatching()
+        val logList = findViewById<ListView>(R.id.folders_accessed_list)
+        // Set up empty view when there are no folders accessed yet
+        val emptyView = findViewById<View>(R.id.empty_view)
+        logList.emptyView = emptyView
+        if (accessedFolders.isEmpty()) {
+            emptyView.visibility = View.VISIBLE
+            logList.visibility = View.GONE
+        } else {
+            emptyView.visibility = View.GONE
+            logList.visibility = View.VISIBLE
+        }
 
         logListAdapter = ArrayAdapter(
             this,
@@ -153,7 +180,6 @@ class LogActivity : AppCompatActivity() {
             ArrayList(accessedFolders),
         )
 
-        val logList = findViewById<ListView>(R.id.folders_accessed_list)
         logList.adapter = logListAdapter
 
         // Set up the log button to save log messages
@@ -211,7 +237,10 @@ class LogActivity : AppCompatActivity() {
             // If it is, set the background color to yellow
             val logTextView = TextView(this)
             logTextView.setTextColor(textColor)
-            logTextView.text = message.substring(14) // 14 is the length of "File access: "
+
+            // Extract the full path of the file accessed
+            val fullPath = message.substring(13) // 14 is the length of "File access: "
+            logTextView.text = "File access: $fullPath"
 
             // Check if the message contains a folder path
             val folderPath = getFolderPathFromMessage(message)
@@ -229,14 +258,14 @@ class LogActivity : AppCompatActivity() {
                         ds.color = textColor
                     }
                 }
-                val clickableText = SpannableString(folderPath)
+                val clickableText = SpannableString(fullPath)
                 clickableText.setSpan(
                     clickableSpan,
                     0,
-                    folderPath.length,
+                    fullPath.length,
                     Spanned.SPAN_EXCLUSIVE_EXCLUSIVE,
                 )
-                logTextView.text = TextUtils.concat("File access: ", clickableText)
+                logTextView.text = clickableText
                 logTextView.movementMethod = LinkMovementMethod.getInstance()
             }
 
@@ -273,6 +302,11 @@ class LogActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        fileObserver?.stopWatching()
+        stopWatchingFileObservers()
+    }
+
+    // Stop watching all FileObservers
+    private fun stopWatchingFileObservers() {
+        fileObservers.forEach { it.stopWatching() }
     }
 }

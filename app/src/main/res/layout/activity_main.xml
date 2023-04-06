@@ -17,6 +17,7 @@
         android:layout_height="wrap_content"
         android:choiceMode="multipleChoice"/>
 
+
     <Button
         android:id="@+id/selected_apps_button"
         android:layout_width="wrap_content"

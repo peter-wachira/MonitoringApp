@@ -2,18 +2,10 @@ package com.example.monitoringapp.service
 
 import android.Manifest
 import android.app.* // ktlint-disable no-wildcard-imports
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.* // ktlint-disable no-wildcard-imports
-import android.os.Binder
-import android.os.Build
-import android.os.FileObserver
 import android.os.FileObserver.* // ktlint-disable no-wildcard-imports
-import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -66,7 +58,7 @@ class FileMonitorService : Service() {
                 fileObserver = object : FileObserver(dataDir, ALL_EVENTS) {
                     override fun onEvent(event: Int, path: String?) {
                         if (event and (CREATE or OPEN or CLOSE_WRITE) != 0) {
-                            val folderPath = "$packageName/$path"
+                            val folderPath = "$dataDir/$path"
                             Log.d("FileMonitor", "$folderPath has been accessed")
                             sendNotification("$folderPath has been accessed")
                             // Add the accessed folder to the list
