@@ -1,9 +1,9 @@
 package com.example.monitoringapp.service
 
-import android.Manifest
 import android.app.* // ktlint-disable no-wildcard-imports
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.* // ktlint-disable no-wildcard-imports
 import android.os.FileObserver.* // ktlint-disable no-wildcard-imports
 import android.provider.Settings
@@ -71,13 +71,38 @@ class FileMonitorService : Service() {
             }
         }
 
-        val permission = Manifest.permission.FOREGROUND_SERVICE
-        val res = checkSelfPermission(permission)
-        if (res != PackageManager.PERMISSION_GRANTED) {
-            val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
-            intent.data = android.net.Uri.parse("package:$packageName")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
+            val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            val uri = Uri.fromParts("package", packageName, null)
+            intent.data = uri
             startActivity(intent)
-            return
+        } else {
+            // Permission already granted or running on a lower version of Android
+            // Get the list of external storage directories
+            val externalDirs = applicationContext.getExternalFilesDirs(null)
+
+            // Monitor the external storage directories
+            for (externalDir in externalDirs) {
+                if (externalDir != null) {
+                    val rootDir = externalDir.parentFile
+                    if (rootDir != null) {
+                        fileObserver = object : FileObserver(rootDir.path, ALL_EVENTS) {
+                            override fun onEvent(event: Int, path: String?) {
+                                if (event and (CREATE or OPEN or CLOSE_WRITE) != 0) {
+                                    val folderPath = "$rootDir$path"
+                                    Log.d("FileMonitor", "$folderPath has been accessed")
+                                    sendNotification("$folderPath has been accessed")
+                                    // Add the accessed folder to the list
+                                    accessedFolders.add(folderPath)
+                                }
+                            }
+                        }
+                        fileObserver.startWatching()
+                    }
+                }
+            }
         }
 
         startForeground(
@@ -94,6 +119,7 @@ class FileMonitorService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         fileObserver.stopWatching()
+        notificationManager.cancel(NOTIFICATION_ID)
     }
 
     private fun createNotificationChannel() {
