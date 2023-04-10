@@ -8,9 +8,9 @@ import android.content.ServiceConnection
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Color
-import android.os.Bundle
-import android.os.FileObserver
-import android.os.IBinder
+import android.net.Uri
+import android.os.*
+import android.provider.Settings
 import android.text.SpannableString
 import android.text.Spanned
 import android.text.TextPaint
@@ -39,7 +39,7 @@ class LogActivity : AppCompatActivity() {
     private val logMessages = mutableListOf<String>()
     private lateinit var logListAdapter: ArrayAdapter<String>
     private lateinit var fileMonitorService: FileMonitorService
-    private var fileObservers: List<FileObserver> = listOf()
+    private lateinit var fileObserver: FileObserver
 
     // Create a service connection object to bind to the FileMonitorService
     private val serviceConnection = object : ServiceConnection {
@@ -137,30 +137,36 @@ class LogActivity : AppCompatActivity() {
         val pm = packageManager
         val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
 
-        // Create a separate FileObserver for each installed app
-        fileObservers = packages.mapNotNull { packageInfo ->
-            packageInfo.dataDir?.let { dataDir ->
-                object : FileObserver(dataDir, ALL_EVENTS) {
-                    override fun onEvent(event: Int, path: String?) {
-                        if (event and (CREATE or DELETE or MODIFY or OPEN or CLOSE_WRITE) != 0) {
-                            val fullPath = "$dataDir/$path"
-                            Log.e(TAG, "File access: $fullPath")
-                            runOnUiThread {
-                                logMessage("File access: $fullPath", logContainer)
-                            }
-                            val folderPath = getFolderPathFromMessage("File access: $fullPath")
-                            if (folderPath != null) {
-                                accessedFolders.add(fullPath)
+        // Create a single FileObserver that watches the data folder of all installed apps
+        fileObserver =
+            object : FileObserver("/data/data", CREATE or DELETE or MODIFY or OPEN or CLOSE_WRITE) {
+                override fun onEvent(event: Int, path: String?) {
+                    if (event and (CREATE or DELETE or MODIFY or OPEN or CLOSE_WRITE) != 0) {
+                        // Iterate over all installed apps to find the app that the modified file belongs to
+                        for (packageInfo in packages) {
+                            val dataDir = packageInfo.dataDir
+                            if (dataDir != null && path?.startsWith(dataDir) == true) {
+                                val fullPath = "$dataDir/$path"
+                                Log.e(TAG, "File access: $fullPath")
                                 runOnUiThread {
-                                    logListAdapter.clear()
-                                    logListAdapter.addAll(accessedFolders)
+                                    logMessage("File access: $fullPath", logContainer)
                                 }
+                                val folderPath = getFolderPathFromMessage("File access: $fullPath")
+                                if (folderPath != null) {
+                                    accessedFolders.add(fullPath)
+                                    runOnUiThread {
+                                        logListAdapter.clear()
+                                        logListAdapter.addAll(accessedFolders)
+                                    }
+                                }
+                                break
                             }
                         }
                     }
-                }.apply { startWatching() }
-            }
-        }.toList()
+                }
+            }.apply { startWatching() }
+
+        startMonitoring()
 
         val logList = findViewById<ListView>(R.id.folders_accessed_list)
         // Set up empty view when there are no folders accessed yet
@@ -186,6 +192,66 @@ class LogActivity : AppCompatActivity() {
         val logButton = findViewById<Button>(R.id.save_app_logs)
         logButton.setOnClickListener {
             saveLog()
+        }
+    }
+
+    private fun startMonitoring() {
+        // Get a list of all installed apps
+        val pm = packageManager
+        val packages = pm.getInstalledApplications(PackageManager.GET_META_DATA)
+
+        // Monitor the data directories of all installed apps
+        for (packageInfo in packages) {
+            val packageName = packageInfo.packageName
+            val dataDir = packageInfo.dataDir
+
+            if (packageName != applicationContext.packageName && dataDir != null) {
+                fileObserver = object : FileObserver(dataDir, ALL_EVENTS) {
+                    override fun onEvent(event: Int, path: String?) {
+                        if (event and (CREATE or OPEN or CLOSE_WRITE) != 0) {
+                            val folderPath = "$dataDir/$path"
+                            Log.d("FileMonitor", "$folderPath has been accessed")
+                            // Add the accessed folder to the list
+                            accessedFolders.add(folderPath)
+                        }
+                    }
+                }
+
+                fileObserver.startWatching()
+            }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
+            val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            val uri = Uri.fromParts("package", packageName, null)
+            intent.data = uri
+            startActivity(intent)
+        } else {
+            // Permission already granted or running on a lower version of Android
+            // Get the list of external storage directories
+            val externalDirs = applicationContext.getExternalFilesDirs(null)
+
+            // Monitor the external storage directories
+            for (externalDir in externalDirs) {
+                if (externalDir != null) {
+                    val rootDir = externalDir.parentFile
+                    if (rootDir != null) {
+                        fileObserver = object : FileObserver(rootDir.path, ALL_EVENTS) {
+                            override fun onEvent(event: Int, path: String?) {
+                                if (event and (CREATE or OPEN or CLOSE_WRITE) != 0) {
+                                    val folderPath = "$rootDir$path"
+                                    Log.d("FileMonitor", "$folderPath has been accessed")
+                                    // Add the accessed folder to the list
+                                    accessedFolders.add(folderPath)
+                                }
+                            }
+                        }
+                        fileObserver.startWatching()
+                    }
+                }
+            }
         }
     }
 
@@ -307,6 +373,6 @@ class LogActivity : AppCompatActivity() {
 
     // Stop watching all FileObservers
     private fun stopWatchingFileObservers() {
-        fileObservers.forEach { it.stopWatching() }
+        fileObserver.stopWatching()
     }
 }
