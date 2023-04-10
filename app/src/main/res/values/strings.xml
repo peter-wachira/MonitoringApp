@@ -13,4 +13,7 @@
     <string name="save_app_log_file">Save Log File</string>
     <string name="no_folders_accessed_message">No folders currently accessed</string>
     <string name="no_permissions_found">No permissions found.</string>
+    <string name="other_apps">"Other apps: "</string>
+    <string name="system_apps">"System apps: "</string>
+    <string name="search_hint">search app..</string>
 </resources>

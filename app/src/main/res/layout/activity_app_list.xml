@@ -1,27 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/activity_app_list"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:id="@+id/folders_accessed_title"
+    <!-- Search bar -->
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/search_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?attr/textAppearanceSubtitle1"
-        android:textStyle="bold"
-        android:text="@string/list_of_installed_apps"
-        android:padding="16dp"
-       />
+        android:queryHint="@string/search_hint"
+        android:iconifiedByDefault="false"
+        android:layout_margin="16dp"
+        android:background="@drawable/search_background"/>
+
 
     <ListView
-        android:id="@+id/list_view"
+        android:id="@+id/other_list_view"
+        android:layout_width="match_parent"
+        android:layout_below="@id/search_view"
+
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:padding="8dp" />
+
+    <ListView
+        android:id="@+id/system_list_view"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/folders_accessed_title"
+        android:layout_below="@id/other_list_view"
         android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginTop="1dp"
-        android:layout_marginBottom="-2dp"
         android:padding="8dp" />
+
 
 </RelativeLayout>
