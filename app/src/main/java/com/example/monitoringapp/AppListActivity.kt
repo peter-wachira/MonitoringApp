@@ -60,13 +60,8 @@ class AppListActivity : AppCompatActivity() {
         // Set an OnItemClickListener to handle clicks on app names
         systemListView.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
             if (position > 0) { // Skip the header row
-                val packageName = if (position <= systemAdapter.count) {
-                    // The selected app is a system app
-                    packageManager.getInstalledApplications(PackageManager.GET_META_DATA)[position - 1].packageName
-                } else {
-                    // The selected app is an other app
-                    packageManager.getInstalledApplications(PackageManager.GET_META_DATA)[position - systemAdapter.count - 1].packageName
-                }
+                val appName = systemListView.getItemAtPosition(position) as String
+                val packageName = getPackageName(appName)
                 val intent = Intent(this, LogActivity::class.java)
                 intent.putExtra("packageName", packageName) // Add the package name as an extra
                 startActivity(intent)
@@ -76,13 +71,8 @@ class AppListActivity : AppCompatActivity() {
         // Set an OnItemClickListener to handle clicks on app names
         otherListView.onItemClickListener = AdapterView.OnItemClickListener { _, _, position, _ ->
             if (position > 0) { // Skip the header row
-                val packageName = if (position <= otherAdapter.count) {
-                    // The selected app is a system app
-                    packageManager.getInstalledApplications(PackageManager.GET_META_DATA)[position - 1].packageName
-                } else {
-                    // The selected app is an other app
-                    packageManager.getInstalledApplications(PackageManager.GET_META_DATA)[position - otherAdapter.count - 1].packageName
-                }
+                val appName = otherListView.getItemAtPosition(position) as String
+                val packageName = getPackageName(appName)
                 val intent = Intent(this, LogActivity::class.java)
                 intent.putExtra("packageName", packageName) // Add the package name as an extra
                 startActivity(intent)
@@ -109,5 +99,17 @@ class AppListActivity : AppCompatActivity() {
             otherListView.clearTextFilter()
             false
         }
+    }
+
+    // Function to get the package name for a given app name
+    private fun getPackageName(appName: String): String {
+        val packageManager = packageManager
+        val installedApps = packageManager.getInstalledApplications(PackageManager.GET_META_DATA)
+        for (app in installedApps) {
+            if (app.loadLabel(packageManager).toString() == appName) {
+                return app.packageName
+            }
+        }
+        throw RuntimeException("Package not found for app name: $appName")
     }
 }
