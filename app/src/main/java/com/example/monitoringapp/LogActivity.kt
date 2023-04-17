@@ -9,7 +9,8 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.net.Uri
-import android.os.*
+
+import android.os.* // ktlint-disable no-wildcard-imports
 import android.provider.Settings
 import android.text.SpannableString
 import android.text.Spanned
@@ -28,6 +29,29 @@ import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 import java.util.*
+
+/**
+ **LogActivity**
+- The code is an implementation of an app that monitors other apps file access.
+ The main class is LogActivity that extends AppCompatActivity.
+ The code declares some properties, such as TAG, packageInfo, permissions, accessedFolders, logMessages, logListAdapter, fileMonitorService, and fileObserver.
+ It also creates a service connection object to bind to the FileMonitorService and store the result in the bound variable.
+ If binding failed, it logs an error message and shows a toast message.
+
+- The code sets up the back button to clear the app name and call onBackPressed().
+ It gets the package name from the intent extra and sets the app name.
+ It gets the permissions for the selected app and creates a TextView for each permission and adds it to the log container.
+ If there are no permissions, it shows a message in an empty view.
+
+- The code then monitors the app's file access in the background.
+ It gets all installed applications, creates a single FileObserver that watches the data folder of all installed apps, and overrides the onEvent method to log file access.
+ If the modified file belongs to an installed app, the code gets the folder path from the log message and adds it to the accessedFolders set.
+ It also updates the UI to display the folder paths in a list view.
+
+- In summary, the code declares some properties and sets up a service connection object to bind to the FileMonitorService.
+ It also sets up the UI components and logs the file access of installed apps in the background.
+ It updates the UI to display the folder paths in a list view.
+*/
 
 class LogActivity : AppCompatActivity() {
 

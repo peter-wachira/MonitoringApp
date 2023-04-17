@@ -12,6 +12,29 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 
+/**
+ **AppListActivity**
+- This is a block of code written in the Kotlin programming language, which is used to create an Android application.
+ It is specifically related to an activity within the application called "AppListActivity".
+
+- The activity has two ListViews, a SearchView, and adapters for both list views to display the apps installed on the device.
+ The code filters the list of installed apps into two categories: system apps and other apps.
+
+- The system apps are displayed with a header called "system_apps" using the ArrayAdapter and the list_item_system layout.
+ The other apps are displayed with a header called "other_apps" using the ArrayAdapter and the list_item_other layout.
+
+- The code also sets up two OnItemClickListener listeners to handle clicks on the app names in both list views.
+ When an app name is clicked, the package name for that app is retrieved using the getPackageName function.
+ Then an intent is created to start another activity called "LogActivity", with the package name added as an extra.
+
+- Lastly, the code sets up the SearchView to filter the list of apps.
+ Whenever the text in the SearchView changes, the adapters for both list views are filtered accordingly.
+ Additionally, the code provides a way to clear the filters by implementing an onCloseListener.
+
+- Overall, this code is used to display a list of installed apps on an Android device, categorize them into system and other apps,
+ and provide a way to search and filter the list of apps.
+*/
+
 class AppListActivity : AppCompatActivity() {
 
     private lateinit var systemListView: ListView

@@ -14,11 +14,14 @@ import androidx.core.app.NotificationManagerCompat
 import com.example.monitoringapp.LogActivity
 import com.example.monitoringapp.R
 
-/*This code defines a FileMonitorService class that extends the Service class in Android. When this service is started,
- it monitors the data directories of all installed apps and notifies the user when any of them are accessed. Specifically,
- it uses a FileObserver to watch for file events like file creation, opening, and writing. When such an event occurs,
- the service sends a notification to the user. To trigger this service from an activity, you need to start the service using an Intent. You can use the following code to start the service:
- kotlin
+/**
+ **FileMonitorService*
+- This code defines a FileMonitorService class that extends the Service class in Android.
+ When this service is started, it monitors the data directories of all installed apps and notifies the user when any of them are accessed.
+ Specifically,it uses a FileObserver to watch for file events like file creation, opening, and writing. When such an event occurs,
+ the service sends a notification to the user.
+- To trigger this service from an activity, you need to start the service using an Intent.
+ You can use the following code to start the service:
  */
 
 class FileMonitorService : Service() {
