@@ -1,6 +1,6 @@
 ## Monitoring App
 
-Android app that allows users to monitor the file access of other apps on their device. It provides information about the permissions requested by each app and tracks the file access of each app in the background.
+Android app that allows users to monitor the file access of other apps on their device. It provides information about the permissions requested by each app and tracks the file access of each app in the background and shows notifications of which folders are accessed.
 
 ### Getting Started
 - Clone or download the repository
