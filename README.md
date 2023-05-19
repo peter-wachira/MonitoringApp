@@ -35,4 +35,8 @@ Watchdog allows users to monitor the file access of other apps on their device. 
 - As at the time this project was made, testing was not a major concern.
 - This is a rough implementation to test the idea, there's no emphasis on crisp UI components, planning to refine it more later.
 
+## Contributions
+- For any comments,suggestions,feedback or possible collaborations, contact me via email: pwachira900@gmail.com or shoot me a quick message at https://peter-wachira.com
+- I am open to contributors
+
 
