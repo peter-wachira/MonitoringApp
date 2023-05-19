@@ -25,4 +25,8 @@ Introducing the Monitoring App: Because Trusting Apps Blindly is So 2010.
 - Monitors the file access of each app in the background 
 - Saves the logs to a file for later analysis
 
+### Known Bugs
+- As at the time this project was made, testing was not a major concern.
+- This is a rough implementation to test the idea, there's no emphasis on crisp UI components, planning to refine it more later.
+
 
