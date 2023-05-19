@@ -2,9 +2,13 @@
 
 Introducing the Watchdog App: Because Trusting Apps Blindly is So 2010.
 
-- Tired of those sneaky apps snooping around your device, peeking into your files like nosy neighbors? Well, fear no more! Presenting the Watchdog App, your very own digital watchdog with a sense of humor (and impeccable security skills). It's like having a personal bouncer for your files, notifying you whenever an app tries to access them. With this app by your side, you'll have the power to say, "Mind your own business!" So go ahead, join the league of mighty file protectors, I am open to any contributors.
+My Zany Experiment in Digital Espionage!
 
-- Watchdog allows users to monitor the file access of other apps on their device. It provides information about the permissions requested by each app and tracks the file access of each app in the background and shows notifications of which folders are accessed.
+Tired of those sneaky apps snooping around your device, peeking into your files like nosy neighbors? Well, fear no more! Say hello to the Watchdog App, your very own digital watchdog with a sense of humor and impeccable security skills. It's like having a personal bouncer for your files, notifying you whenever an app tries to access them. With this app by your side, you'll have the power to say, "Mind your own business!"
+
+But hold on, here's the twist – the Watchdog App is my little pet project created out of wonder, a whimsical experiment in file protection. I'm just playing around, testing out the idea with the intent to refine it in the future. With this quirky app, you'll get a front-row seat to the secret lives of your apps. It's like being the James Bond of your own device, keeping tabs on who's accessing your files and folders. It's far from a polished, finished product, but that's part of the fun!
+
+Watchdog allows users to monitor the file access of other apps on their device. It provides information about the permissions requested by each app and tracks the file access of each app in the background and shows notifications of which folders are accessed.
 
 ### Getting Started
 - Clone or download the repository
