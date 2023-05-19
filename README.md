@@ -23,7 +23,9 @@ Introducing the Watchdog App: Because Trusting Apps Blindly is So 2010.
 ### Features
 - Displays a list of installed apps with their permissions and file access logs
 - Monitors the file access of each app in the background 
-- Saves the logs to a file for later analysis
+- Saves the logs to a file for later analysis 
+#### Feature Improvements
+- Add the ability to Block and Terminate Unwanted File Access.
 
 ### Known Bugs
 - As at the time this project was made, testing was not a major concern.
